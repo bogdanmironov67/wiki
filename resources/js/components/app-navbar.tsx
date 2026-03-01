@@ -38,7 +38,7 @@ import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { index as modsIndex } from '@/routes/mods';
 import type { SharedData } from '@/types';
-import { mainNavItems } from '@/utils/navigation-items';
+import { mainNavItems } from '@/utils/commonUtils';
 import HytaleModdingLogo from './hytale-modding-logo';
 
 export default function AppNavbar() {

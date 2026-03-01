@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
-import { mainNavItems } from '@/utils/navigation-items';
+import { mainNavItems } from '@/utils/commonUtils';
 import AppLogo from './app-logo';
 
 const footerNavItems: NavItem[] = [

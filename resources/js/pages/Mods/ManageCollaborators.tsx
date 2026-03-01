@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -23,17 +25,23 @@ import {
 } from '@/components/ui/select';
 import { useFlashMessages } from '@/hooks/useFlashMessages';
 import AppLayout from '@/layouts/app-layout';
+import { User } from '@/types';
+import { useInitials } from '@/hooks/use-initials';
+import { ChevronRightIcon, DotIcon } from 'lucide-react';
+import { getRoleColor } from '@/utils/commonUtils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { UserInfo } from '@/components/user-info';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-interface User {
-  id: number;
-  name: string;
-  username: string;
-  avatar_url?: string;
-}
+type Role = 'admin' | 'editor' | 'viewer';
 
 interface Collaborator extends User {
   pivot: {
-    role: 'admin' | 'editor' | 'viewer';
+    role: Role;
     invited_by: number;
     created_at: string;
   };
@@ -42,7 +50,7 @@ interface Collaborator extends User {
 interface PendingInvitation {
   id: string;
   token: string;
-  role: 'viewer' | 'editor' | 'admin';
+  role: Role;
   expires_at: string;
   user: User;
   inviter: User;
@@ -53,7 +61,7 @@ interface CollaboratorOrInvite {
   name: string;
   username: string;
   avatar_url?: string;
-  role: 'admin' | 'editor' | 'viewer';
+  role: Role;
   invited_by: number;
   created_at?: string;
   expires_at?: string;
@@ -77,19 +85,45 @@ interface Props {
   canManage: boolean;
 }
 
-export default function ManageCollaborators({ mod, pendingInvitations, canManage }: Props) {
+const roleOptions = [
+  {
+    value: 'admin',
+    label: 'Admin',
+    description:
+      'Can create, edit, and delete pages. Can manage collaborators and invite new members.',
+  },
+  {
+    value: 'editor',
+    label: 'Editor',
+    description:
+      'Can create, edit, and publish pages. Cannot manage collaborators or mod settings.',
+  },
+  {
+    value: 'viewer',
+    label: 'Viewer',
+    description:
+      'Can only view private mod content. Cannot edit or create pages.',
+  },
+];
+
+export default function ManageCollaborators({
+  mod,
+  pendingInvitations,
+  canManage,
+}: Props) {
   useFlashMessages();
+  const getInitials = useInitials();
   const [showAddDialog, setShowAddDialog] = useState(false);
 
   const { data, setData, post, processing, errors, reset } = useForm({
     username: '',
-    role: 'viewer' as 'admin' | 'editor' | 'viewer',
+    role: 'viewer' as Role,
   });
 
   const { delete: deleteRequest } = useForm();
 
   const allPeople: CollaboratorOrInvite[] = [
-    ...mod.collaborators.map(collab => ({
+    ...mod.collaborators.map((collab) => ({
       id: collab.id,
       name: collab.name,
       username: collab.username,
@@ -99,7 +133,7 @@ export default function ManageCollaborators({ mod, pendingInvitations, canManage
       created_at: collab.pivot.created_at,
       isPending: false,
     })),
-    ...pendingInvitations.map(invitation => ({
+    ...pendingInvitations.map((invitation) => ({
       id: invitation.user.id,
       name: invitation.user.name,
       username: invitation.user.username,
@@ -145,7 +179,9 @@ export default function ManageCollaborators({ mod, pendingInvitations, canManage
   };
 
   const removeCollaborator = (person: CollaboratorOrInvite) => {
-    const actionText = person.isPending ? 'cancel this invitation' : 'remove this collaborator';
+    const actionText = person.isPending
+      ? 'cancel this invitation'
+      : 'remove this collaborator';
     if (confirm(`Are you sure you want to ${actionText}?`)) {
       const endpoint = person.isPending
         ? `/dashboard/invitations/${person.token}/cancel`
@@ -153,7 +189,9 @@ export default function ManageCollaborators({ mod, pendingInvitations, canManage
 
       deleteRequest(endpoint, {
         onSuccess: () => {
-          const successText = person.isPending ? 'Invitation cancelled' : 'Collaborator removed';
+          const successText = person.isPending
+            ? 'Invitation cancelled'
+            : 'Collaborator removed';
           sileo.success({
             title: successText,
             description: `${person.name} has been ${person.isPending ? 'uninvited' : 'removed'} from the mod`,
@@ -203,29 +241,6 @@ export default function ManageCollaborators({ mod, pendingInvitations, canManage
     );
   };
 
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'owner':
-        return 'bg-purple-100 text-purple-800';
-      case 'admin':
-        return 'bg-blue-100 text-blue-800';
-      case 'editor':
-        return 'bg-green-100 text-green-800';
-      case 'viewer':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
   if (!canManage) {
     return (
       <AppLayout>
@@ -233,10 +248,8 @@ export default function ManageCollaborators({ mod, pendingInvitations, canManage
         <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6 lg:px-8">
           <Card>
             <CardContent className="py-12 text-center">
-              <h3 className="mb-2 text-lg font-medium text-gray-900">
-                Access Denied
-              </h3>
-              <p className="mb-4 text-gray-600">
+              <h3 className="mb-2 text-lg font-medium">Access Denied</h3>
+              <p className="mb-4 text-muted-foreground">
                 You don't have permission to manage collaborators for this mod.
               </p>
               <Button asChild>
@@ -255,22 +268,17 @@ export default function ManageCollaborators({ mod, pendingInvitations, canManage
 
       <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <nav className="mb-4 text-sm text-gray-600">
-            <a
-              href={`/dashboard/mods/${mod.slug}`}
-              className="hover:text-gray-800"
-            >
+          <nav className="mb-4 text-sm text-muted-foreground">
+            <a href={`/dashboard/mods/${mod.slug}`} className="hover:underline">
               {mod.name}
             </a>
-            <span className="mx-2">›</span>
+            <ChevronRightIcon className="m-1 inline h-4 w-4" />
             <span>Collaborators</span>
           </nav>
-          <div className="flex items-center justify-between">
+          <div className="mt-8 flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Manage Collaborators
-              </h1>
-              <p className="mt-2 text-gray-600">
+              <h1 className="text-3xl font-bold">Manage Collaborators</h1>
+              <p className="mt-2 text-muted-foreground">
                 Invite team members and manage their access to this mod
               </p>
             </div>
@@ -294,10 +302,10 @@ export default function ManageCollaborators({ mod, pendingInvitations, canManage
                       value={data.username}
                       onChange={(e) => setData('username', e.target.value)}
                       placeholder="Enter username"
-                      className={errors.username ? 'border-red-500' : ''}
+                      className={errors.username ? 'border-destructive' : ''}
                     />
                     {errors.username && (
-                      <p className="mt-1 text-sm text-red-600">
+                      <p className="mt-1 text-sm text-destructive">
                         {errors.username}
                       </p>
                     )}
@@ -315,30 +323,41 @@ export default function ManageCollaborators({ mod, pendingInvitations, canManage
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="admin">
-                          <div>
-                            <div className="font-medium">Admin</div>
-                            <div className="text-sm text-gray-600">
-                              Can manage pages and collaborators
+                        {roleOptions.map((option) => (
+                          <SelectItem
+                            key={option.value}
+                            value={option.value}
+                            className="flex w-full"
+                          >
+                            <div className="hidden w-full items-center justify-between gap-4 sm:flex">
+                              <Badge className={getRoleColor(option.value)}>
+                                {option.label}
+                              </Badge>
+                              <div className="text-sm text-muted-foreground">
+                                {option.description}
+                              </div>
                             </div>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="editor">
-                          <div>
-                            <div className="font-medium">Editor</div>
-                            <div className="text-sm text-gray-600">
-                              Can create and edit pages
-                            </div>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="viewer">
-                          <div>
-                            <div className="font-medium">Viewer</div>
-                            <div className="text-sm text-gray-600">
-                              Can only view pages
-                            </div>
-                          </div>
-                        </SelectItem>
+
+                            {/* Mobile view */}
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <div className="flex w-full items-center justify-between gap-4 sm:hidden">
+                                  <div className="font-medium">
+                                    {option.label}
+                                  </div>
+                                  <div className="truncate text-sm text-muted-foreground">
+                                    {option.description}
+                                  </div>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <div className="text-sm text-muted-foreground">
+                                  {option.description}
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -361,171 +380,193 @@ export default function ManageCollaborators({ mod, pendingInvitations, canManage
           </div>
         </div>
 
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <UsersIcon className="mr-2 h-5 w-5" />
-                Owner
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between rounded-lg bg-purple-50 p-4">
-                <div className="flex items-center">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100">
-                    <span className="text-sm font-medium text-purple-800">
-                      {mod.owner.name.charAt(0)}
-                    </span>
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-900">
-                      {mod.owner.name}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      @{mod.owner.username}
-                    </p>
-                  </div>
-                </div>
-                <Badge className={getRoleColor('owner')}>Owner</Badge>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center">
+        {/* Bento Box Layout */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {/* Owner and Collaborators */}
+          <div className="space-y-6 lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
                   <UsersIcon className="mr-2 h-5 w-5" />
-                  Collaborators & Invitations ({allPeople.length})
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {allPeople.length === 0 ? (
-                <div className="py-8 text-center">
-                  <UsersIcon className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-                  <h3 className="mb-2 text-lg font-medium text-gray-900">
-                    No collaborators yet
-                  </h3>
-                  <p className="mb-4 text-gray-600">
-                    Invite team members to help build this mod's documentation
-                  </p>
-                  <Button onClick={() => setShowAddDialog(true)}>
-                    <PlusIcon className="mr-2 h-4 w-4" />
-                    Invite First Collaborator
-                  </Button>
+                  Owner
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="relative flex items-center justify-between overflow-hidden rounded-lg p-4">
+                  <div className="flex items-center">
+                    <UserInfo user={mod.owner} />
+
+                    <div className="ml-4">
+                      <p className="text-sm font-bold text-primary">
+                        {mod.owner.name}
+                      </p>
+                      <p className="flex items-center text-sm">
+                        @{mod.owner.username}
+                        <DotIcon />
+                        Joined{' '}
+                        {new Date(mod.owner.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge className={getRoleColor('owner')}>Owner</Badge>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  {allPeople.map((person) => (
-                    <div
-                      key={`${person.isPending ? 'pending' : 'active'}-${person.id}`}
-                      className="flex items-center justify-between rounded-lg border p-4 hover:bg-gray-50"
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center">
+                    <UsersIcon className="mr-2 h-5 w-5" />
+                    Collaborators ({allPeople.length})
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {allPeople.length === 0 ? (
+                  <div className="py-8 text-center">
+                    <UsersIcon className="mx-auto mb-4 h-12 w-12" />
+                    <h3 className="mb-2 text-lg font-medium text-primary">
+                      No collaborators yet
+                    </h3>
+                    <p className="mb-4 text-muted-foreground">
+                      Invite team members to help build this mod's documentation
+                    </p>
+                    <Button
+                      onClick={() => setShowAddDialog(true)}
+                      variant="outline"
+                      className="gap-2 border-primary/50 bg-primary/40 transition-all duration-300 hover:bg-primary hover:text-background"
                     >
-                      <div className="flex items-center">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100">
-                          <span className="text-sm font-medium text-gray-800">
-                            {person.name.charAt(0)}
-                          </span>
+                      <PlusIcon className="mr-2 h-4 w-4" />
+                      Invite First Collaborator
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {allPeople.map((collaborator) => (
+                      <div
+                        key={collaborator.id}
+                        className="flex items-center justify-between rounded-sm border p-4"
+                      >
+                        <div className="flex items-center">
+                          <Avatar className="h-8 w-8 overflow-hidden rounded-full">
+                            <AvatarImage
+                              src={collaborator.avatar_url}
+                              alt={collaborator.name}
+                            />
+                            <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
+                              {getInitials(collaborator.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="ml-4">
+                            <p className="text-sm font-medium">
+                              {collaborator.name}
+                              {collaborator.isPending && (
+                                <Badge className="ml-2 border-yellow-100 bg-transparent text-yellow-100">
+                                  Pending
+                                </Badge>
+                              )}
+                            </p>
+                            <p className="flex items-center text-sm">
+                              @{collaborator.username}
+                              <DotIcon />
+                              {collaborator.isPending
+                                ? 'Invited'
+                                : 'Joined'}{' '}
+                              {collaborator.isPending
+                                ? `Expires ${new Date(collaborator.expires_at!).toLocaleDateString()}`
+                                : collaborator.created_at
+                                  ? new Date(
+                                      collaborator.created_at,
+                                    ).toLocaleDateString()
+                                  : 'N/A'}
+                            </p>
+                          </div>
                         </div>
-                        <div className="ml-4">
-                          <p className="text-sm font-medium text-gray-900 flex items-center gap-2">
-                            {person.name}
-                            {person.isPending && (
-                              <Badge variant="outline" className="text-xs">
-                                Pending
-                              </Badge>
-                            )}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            @{person.username} • {person.isPending
-                              ? `Expires ${formatDate(person.expires_at!)}`
-                              : `Joined ${formatDate(person.created_at!)}`}
-                          </p>
-                        </div>
-                      </div>
 
-                      <div className="flex items-center space-x-3">
-                        {person.isPending ? (
-                          <Badge className={getRoleColor(person.role)}>
-                            {person.role.charAt(0).toUpperCase() + person.role.slice(1)}
-                          </Badge>
-                        ) : (
-                          <Select
-                            value={person.role}
-                            onValueChange={(value) =>
-                              updateRole(person.id, value)
-                            }
-                          >
-                            <SelectTrigger className="w-32">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="admin">Admin</SelectItem>
-                              <SelectItem value="editor">Editor</SelectItem>
-                              <SelectItem value="viewer">Viewer</SelectItem>
-                            </SelectContent>
-                          </Select>
+                        {!collaborator.isPending && (
+                          <div className="flex items-center space-x-3">
+                            <Select
+                              value={collaborator.role}
+                              onValueChange={(value) =>
+                                updateRole(collaborator.id, value as Role)
+                              }
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="admin">Admin</SelectItem>
+                                <SelectItem value="editor">Editor</SelectItem>
+                                <SelectItem value="viewer">Viewer</SelectItem>
+                              </SelectContent>
+                            </Select>
+
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-destructive hover:bg-destructive hover:text-primary focus:ring-2 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+                                >
+                                  <TrashIcon className="h-4 w-4" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Remove Collaborator</DialogTitle>
+                                  <DialogDescription>
+                                    Are you sure you want to remove this
+                                    collaborator?
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <DialogFooter>
+                                  <Button
+                                    onClick={() =>
+                                      removeCollaborator(collaborator)
+                                    }
+                                    variant="destructive"
+                                  >
+                                    Remove
+                                  </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
+                          </div>
                         )}
-
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => removeCollaborator(person)}
-                          className="text-red-600 hover:bg-red-50 hover:text-red-700"
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </Button>
                       </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Permissions Levels */}
+          <div className="lg:col-span-1">
+            <Card className="h-full">
+              <CardHeader>
+                <CardTitle>Permission Levels</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {roleOptions.map((option) => (
+                    <div
+                      key={option.value}
+                      className="flex items-start space-x-3"
+                    >
+                      <Badge className={getRoleColor(option.value)}>
+                        {option.label}
+                      </Badge>
+                      <p className="text-sm text-muted-foreground">
+                        {option.description}
+                      </p>
                     </div>
                   ))}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Permissions Guide */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Permission Levels</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <Badge className={getRoleColor('admin')}>Admin</Badge>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      Administrator
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Can create, edit, and delete pages. Can manage
-                      collaborators and invite new members.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <Badge className={getRoleColor('editor')}>Editor</Badge>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">Editor</p>
-                    <p className="text-sm text-gray-600">
-                      Can create, edit, and publish pages. Cannot manage
-                      collaborators or mod settings.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <Badge className={getRoleColor('viewer')}>Viewer</Badge>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">Viewer</p>
-                    <p className="text-sm text-gray-600">
-                      Can only view private mod content. Cannot edit or create
-                      pages.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </AppLayout>
