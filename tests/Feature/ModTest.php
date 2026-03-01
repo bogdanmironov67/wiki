@@ -190,7 +190,7 @@ class ModTest extends TestCase
 
         $response = $this->delete(route('mods.destroy', $mod));
 
-        $this->assertSoftDeleted($mod);
+        $this->assertDatabaseMissing($mod);
         $response->assertRedirect(route('mods.index'));
     }
 
