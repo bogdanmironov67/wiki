@@ -10,8 +10,12 @@ use Symfony\Component\HttpFoundation\Response;
  * Use this when you want to check scopes
  * independently of the main AuthenticateAPIKey middleware.
  *
+ * Supports wildcard scopes like "read:mods:*" which will match
+ * any scope starting with "read:mods:".
+ *
  * Usage in routes:
  *   Route::middleware(['api.key', 'api.scope:write:orders'])->...
+ *   Route::middleware(['api.key', 'api.scope:read:mods:*'])->...  // wildcard
  *
  * Or check multiple scopes (all must be present):
  *   Route::middleware(['api.key', 'api.scope:read:users,write:users'])->...

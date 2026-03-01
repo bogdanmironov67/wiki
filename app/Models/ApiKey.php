@@ -51,17 +51,34 @@ class ApiKey extends Model
     /**
      * Check whether this key grants the given scope.
      * An empty scopes array means the key has full access.
+     * Supports wildcard scopes like "read:mods:*" which matches any scope starting with "read:mods:".
      *
-     * @param  string  $scope  e.g. "read:users"
+     * @param  string  $scope  e.g. "read:users", "read:mods:show"
      */
     public function hasScope(string $scope): bool
     {
         if (empty($this->scopes)) {
-            return true; // No restrictions — full access
+            return false;
         }
 
-        return in_array($scope, $this->scopes, strict: true)
-            || in_array('*', $this->scopes, strict: true);
+        if (in_array($scope, $this->scopes, strict: true)) {
+            return true;
+        }
+
+        if (in_array('*', $this->scopes, strict: true)) {
+            return true;
+        }
+
+        foreach ($this->scopes as $keyScope) {
+            if (str_ends_with($keyScope, '*')) {
+                $pattern = rtrim($keyScope, '*');
+                if (str_starts_with($scope, $pattern)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
