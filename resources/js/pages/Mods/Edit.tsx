@@ -45,7 +45,6 @@ export default function EditMod({ mod }: Props) {
         'Are you sure you want to delete this mod? This will permanently delete all pages, files, and collaborator access. This action cannot be undone.',
       )
     ) {
-      // Handle delete
       fetch(`/dashboard/mods/${mod.slug}`, {
         method: 'DELETE',
         headers: {

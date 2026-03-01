@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 
 class Mod extends Model
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory, HasUuids;
 
     protected $fillable = [
         'name',
