@@ -77,7 +77,7 @@ class ModController extends Controller
         $iconUrl = null;
         if ($request->hasFile('icon')) {
             $iconFile = $request->file('icon');
-            $iconFilename = Str::uuid() . '.' . $iconFile->getClientOriginalExtension();
+            $iconFilename = Str::uuid().'.'.$iconFile->getClientOriginalExtension();
             $iconPath = "mods/icons/{$iconFilename}";
 
             $iconFile->storeAs('mods/icons', $iconFilename, 'public');
@@ -183,7 +183,7 @@ class ModController extends Controller
             }
 
             $iconFile = $request->file('icon');
-            $iconFilename = Str::uuid() . '.' . $iconFile->getClientOriginalExtension();
+            $iconFilename = Str::uuid().'.'.$iconFile->getClientOriginalExtension();
             $iconPath = "mods/icons/{$iconFilename}";
 
             $iconFile->storeAs('mods/icons', $iconFilename, 'public');

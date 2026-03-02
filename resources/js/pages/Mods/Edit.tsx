@@ -45,7 +45,9 @@ interface Props {
 }
 
 export default function EditMod({ mod }: Props) {
-  const [iconPreview, setIconPreview] = useState<string | null>(mod.icon_url || null);
+  const [iconPreview, setIconPreview] = useState<string | null>(
+    mod.icon_url || null,
+  );
 
   const { data, setData, patch, processing, errors } = useForm({
     name: mod.name,
@@ -168,7 +170,7 @@ export default function EditMod({ mod }: Props) {
                         <img
                           src={iconPreview}
                           alt="Icon preview"
-                          className="h-16 w-16 rounded-lg object-cover border"
+                          className="h-16 w-16 rounded-lg border object-cover"
                         />
                       </div>
                     )}
@@ -176,7 +178,8 @@ export default function EditMod({ mod }: Props) {
                       <p className="text-sm text-destructive">{errors.icon}</p>
                     )}
                     <p className="text-sm text-muted-foreground">
-                      Optional. Upload a square image (PNG, JPG, GIF, WebP). Maximum size: 2MB.
+                      Optional. Upload a square image (PNG, JPG, GIF, WebP).
+                      Maximum size: 2MB.
                     </p>
                   </div>
                 </div>
