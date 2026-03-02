@@ -32,6 +32,11 @@ import type {
   ModInfo,
   SharedData,
 } from '@/types';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -342,18 +347,52 @@ function RecentModCard({ mod }: { mod: ModInfo }) {
         <p className="text-sm text-muted-foreground">
           {mod.description || 'No description provided'}
         </p>
-        <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground justify-between">
-          <span className='flex items-center gap-2'>
-            <FileTextIcon className="size-4" />
-            {mod.pages_count}
-          </span>
-          <span className="flex items-center gap-2">
-            <UsersIcon className="size-4" />
-            {mod.collaborators_count}
-          </span>
-          <span className='flex-1 text-end'>
-            Last updated: {new Date(mod.updated_at).toLocaleDateString()}
-          </span>
+        <div className="mt-2 flex items-center justify-between gap-4 text-xs text-muted-foreground">
+          <Tooltip>
+            <TooltipTrigger>
+              <span className="flex items-center gap-2">
+                <FileTextIcon className="size-4" />
+                {mod.pages_count}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>
+                {mod.pages_count} documentation page
+                {mod.pages_count !== 1 ? 's' : ''}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger>
+              <span className="flex items-center gap-2">
+                <UsersIcon className="size-4" />
+                {mod.collaborators_count}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>
+                {mod.collaborators_count} collaborator
+                {mod.collaborators_count !== 1 ? 's' : ''}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger className="ml-auto">
+              <span className="text-end">
+                {new Date(mod.updated_at).toLocaleDateString()}
+              </span>
+            </TooltipTrigger>
+
+            <TooltipContent side="bottom">
+              <p>
+                Last updated on{' '}
+                {new Date(mod.updated_at).toLocaleString(undefined, {
+                  dateStyle: 'medium',
+                  timeStyle: 'short',
+                })}
+              </p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
     </Link>
