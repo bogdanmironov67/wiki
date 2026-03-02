@@ -11,6 +11,7 @@ import {
   EyeIcon,
   UsersIcon,
   FileTextIcon,
+  ArrowDownFromLineIcon,
 } from 'lucide-react';
 import { useState } from 'react';
 import { QuickActionButton } from '@/components/dashboard/quick-action-button';
@@ -23,20 +24,20 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import type {
   BreadcrumbItem,
   DashboardStats,
   ModInfo,
+  PageInfo,
   SharedData,
 } from '@/types';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -70,7 +71,7 @@ export default function Dashboard({ stats }: Props) {
 
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            <RecentActivity stats={stats} totalMods={totalMods} />
+            <RecentActivity stats={stats} />
           </div>
 
           <div className="space-y-6">
@@ -253,13 +254,7 @@ function QuickActions() {
   );
 }
 
-function RecentActivity({
-  stats,
-  totalMods,
-}: {
-  stats: DashboardStats;
-  totalMods: number | undefined;
-}) {
+function RecentActivity({ stats }: { stats: DashboardStats }) {
   return (
     <Card className="border-border/50">
       <CardHeader>
@@ -275,126 +270,152 @@ function RecentActivity({
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="mods" className="w-full">
-          <TabsList className="mb-4 grid w-full grid-cols-2">
-            <TabsTrigger value="mods" className="gap-2">
-              <FolderOpen className="h-4 w-4" />
-              Mods
-            </TabsTrigger>
-            <TabsTrigger value="pages" className="gap-2">
-              <FileText className="h-4 w-4" />
-              Pages
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="mods" className="mt-0 space-y-3">
-            {stats.latestMods?.length > 0 ? (
-              stats.latestMods.map((mod) => (
-                <RecentModCard key={mod.slug} mod={mod} />
-              ))
-            ) : (
-              <div className="py-12 text-center">
-                <FolderOpen className="mx-auto mb-4 h-12 w-12 text-muted-foreground/50" />
-                <h3 className="mb-2 text-lg font-semibold">No mods yet</h3>
-                <p className="mb-4 text-sm text-muted-foreground">
-                  Get started by creating your first mod
-                </p>
-                <Link href="/dashboard/mods/create">
-                  <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create Your First Mod
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="pages" className="mt-0 space-y-3">
-            <div className="py-12 text-center">
-              <FileText className="mx-auto mb-4 h-12 w-12 text-muted-foreground/50" />
-              <h3 className="mb-2 text-lg font-semibold">
-                No documentation pages yet
-              </h3>
-              <p className="mb-4 text-sm text-muted-foreground">
-                {(totalMods ?? 0) > 0
-                  ? 'Start documenting your mods'
-                  : 'Create a mod first, then add documentation pages'}
-              </p>
-              {(totalMods ?? 0) > 0 && (
-                <Link href="/dashboard/mods">
-                  <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Documentation
-                  </Button>
-                </Link>
-              )}
-            </div>
-          </TabsContent>
-        </Tabs>
+      <CardContent className="flex flex-col gap-2">
+        {stats.latestMods?.length > 0 ? (
+          stats.latestMods.map((mod) => (
+            <RecentModCard key={mod.slug} mod={mod} />
+          ))
+        ) : (
+          <div className="py-12 text-center">
+            <FolderOpen className="mx-auto mb-4 h-12 w-12 text-muted-foreground/50" />
+            <h3 className="mb-2 text-lg font-semibold">No mods yet</h3>
+            <p className="mb-4 text-sm text-muted-foreground">
+              Get started by creating your first mod
+            </p>
+            <Link href="/dashboard/mods/create">
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Create Your First Mod
+              </Button>
+            </Link>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
 }
 function RecentModCard({ mod }: { mod: ModInfo }) {
-  return (
-    <Link href={`/dashboard/mods/${mod.slug}`} className="block">
-      <div
-        key={mod.slug}
-        className="rounded-md border border-border/50 p-4 transition-colors hover:bg-accent"
-      >
-        <h3 className="text-lg font-semibold">{mod.name}</h3>
-        <p className="text-sm text-muted-foreground">
-          {mod.description || 'No description provided'}
-        </p>
-        <div className="mt-2 flex items-center justify-between gap-4 text-xs text-muted-foreground">
-          <Tooltip>
-            <TooltipTrigger>
-              <span className="flex items-center gap-2">
-                <FileTextIcon className="size-4" />
-                {mod.pages_count}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>
-                {mod.pages_count} documentation page
-                {mod.pages_count !== 1 ? 's' : ''}
-              </p>
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger>
-              <span className="flex items-center gap-2">
-                <UsersIcon className="size-4" />
-                {mod.collaborators_count}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>
-                {mod.collaborators_count} collaborator
-                {mod.collaborators_count !== 1 ? 's' : ''}
-              </p>
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger className="ml-auto">
-              <span className="text-end">
-                {new Date(mod.updated_at).toLocaleDateString()}
-              </span>
-            </TooltipTrigger>
+  const [expanded, setExpanded] = useState(false);
 
-            <TooltipContent side="bottom">
-              <p>
-                Last updated on{' '}
-                {new Date(mod.updated_at).toLocaleString(undefined, {
-                  dateStyle: 'medium',
-                  timeStyle: 'short',
-                })}
-              </p>
-            </TooltipContent>
-          </Tooltip>
+  return (
+    <div className="flex flex-col">
+      <Link href={`/dashboard/mods/${mod.slug}`} className="block">
+        <div
+          key={mod.slug}
+          className="rounded-md border border-border/50 p-4 transition-colors hover:bg-accent"
+        >
+          <h3 className="text-lg font-semibold">{mod.name}</h3>
+          <p className="text-sm text-muted-foreground">
+            {mod.description || 'No description provided'}
+          </p>
+          <div className="mt-2 flex items-center justify-between gap-4 text-xs text-muted-foreground">
+            <Tooltip>
+              <TooltipTrigger>
+                <span className="flex items-center gap-2">
+                  <FileTextIcon className="size-4" />
+                  {mod.pages_count}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>
+                  {mod.pages_count} documentation page
+                  {mod.pages_count !== 1 ? 's' : ''}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger>
+                <span className="flex items-center gap-2">
+                  <UsersIcon className="size-4" />
+                  {mod.collaborators_count}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>
+                  {mod.collaborators_count} collaborator
+                  {mod.collaborators_count !== 1 ? 's' : ''}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger className="ml-auto">
+                <span className="text-end">
+                  {new Date(mod.updated_at).toLocaleDateString()}
+                </span>
+              </TooltipTrigger>
+
+              <TooltipContent side="bottom">
+                <p>
+                  Last updated on{' '}
+                  {new Date(mod.updated_at).toLocaleString(undefined, {
+                    dateStyle: 'medium',
+                    timeStyle: 'short',
+                  })}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
         </div>
-      </div>
+      </Link>
+      {mod.latest_pages.length > 0 && (
+        <div className="mx-4 rounded-b-md border border-t-0">
+          <Button
+            variant="ghost"
+            className="group h-8 w-full justify-start rounded-none text-xs text-muted-foreground"
+            onClick={() => setExpanded((prev) => !prev)}
+          >
+            <ArrowDownFromLineIcon
+              className="size-4 transition-transform duration-300"
+              style={{
+                rotate: expanded ? '180deg' : '0deg',
+              }}
+            />{' '}
+            <p className="opacity-0 transition-opacity group-hover:opacity-100">
+              Click to show recent pages
+            </p>
+          </Button>
+          <div
+            className="grid duration-300 ease-in-out"
+            style={{ gridTemplateRows: expanded ? '1fr' : '0fr' }}
+          >
+            <div className="overflow-hidden">
+              {mod.latest_pages.map((page) => (
+                <RecentPage key={page.slug} page={page} mod_slug={mod.slug} />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RecentPage({ page, mod_slug }: { page: PageInfo; mod_slug: string }) {
+  console.log(page.updated_at);
+
+  return (
+    <Link
+      href={`/dashboard/mods/${mod_slug}/pages/${page.slug}`}
+      className="flex gap-2 border border-border/50 bg-background/50 px-4 py-1 text-sm hover:bg-accent"
+    >
+      <FileTextIcon className="inline-block size-4 text-muted-foreground" />
+      {page.title}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="ml-auto text-xs text-muted-foreground">
+            {new Date(page.updated_at).toLocaleDateString()}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="right">
+          <p>
+            Last updated on{' '}
+            {new Date(page.updated_at).toLocaleString(undefined, {
+              dateStyle: 'medium',
+              timeStyle: 'short',
+            })}
+          </p>
+        </TooltipContent>
+      </Tooltip>
     </Link>
   );
 }
