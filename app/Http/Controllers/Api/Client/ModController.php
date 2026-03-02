@@ -76,6 +76,18 @@ class ModController extends ClientController
 
         return response()->json([
             'content' => $page->content,
+            'parent' => $page->parent ? [
+                'id' => $page->parent->id,
+                'title' => $page->parent->title,
+                'slug' => $page->parent->slug,
+            ] : null,
+            'children' => $page->children()->get()->map(function ($child) {
+                return [
+                    'id' => $child->id,
+                    'title' => $child->title,
+                    'slug' => $child->slug,
+                ];
+            }),
         ]);
     }
 }
