@@ -24,6 +24,7 @@ class ModController extends ClientController
                     'name' => $mod->name,
                     'slug' => $mod->slug,
                     'description' => $mod->description,
+                    'index' => $mod->indexPage(),
                     'created_at' => $mod->created_at->toISOString(),
                     'updated_at' => $mod->updated_at->toISOString(),
                 ];
