@@ -1,7 +1,9 @@
 import { PlusIcon, UsersIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { Head, useForm, router } from '@inertiajs/react';
+import { ChevronRightIcon, DotIcon } from 'lucide-react';
 import { useState } from 'react';
 import { sileo } from 'sileo';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,19 +25,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useFlashMessages } from '@/hooks/useFlashMessages';
-import AppLayout from '@/layouts/app-layout';
-import { User } from '@/types';
-import { useInitials } from '@/hooks/use-initials';
-import { ChevronRightIcon, DotIcon } from 'lucide-react';
-import { getRoleColor } from '@/utils/commonUtils';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { UserInfo } from '@/components/user-info';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useInitials } from '@/hooks/use-initials';
+import { useFlashMessages } from '@/hooks/useFlashMessages';
+import AppLayout from '@/layouts/app-layout';
+import type { User } from '@/types';
+import { getRoleColor } from '@/utils/commonUtils';
 
 type Role = 'admin' | 'editor' | 'viewer';
 

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\Client;
 use App\Models\Mod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
 
 class ModController extends ClientController
 {
@@ -14,7 +13,9 @@ class ModController extends ClientController
      */
     public function index()
     {
-        $mods = Mod::all();
+        $mods = Mod::where('visibility', 'public')
+            ->latest()
+            ->get();
 
         return response()->json(
             $mods->map(function ($mod) {
@@ -38,6 +39,11 @@ class ModController extends ClientController
         $mod_id = $request->route('mod');
 
         $mod = Mod::where('id', $mod_id)->firstOrFail();
+
+        if (! $mod->canBeAccessedBy(Auth::user())) {
+            return response()->json(['error' => 'Access denied. You do not have permission to view this mod.'], 403);
+        }
+
         $pages = $mod->pages()->latest()->get()->map(function ($page) {
             return [
                 'id' => $page->id,
@@ -60,6 +66,11 @@ class ModController extends ClientController
         $page_slug = $request->route('page');
 
         $mod = Mod::where('id', $mod_id)->firstOrFail();
+
+        if (! $mod->canBeAccessedBy(Auth::user())) {
+            return response()->json(['error' => 'Access denied. You do not have permission to view this mod.'], 403);
+        }
+
         $page = $mod->pages()->where('slug', $page_slug)->firstOrFail();
 
         return response()->json([
