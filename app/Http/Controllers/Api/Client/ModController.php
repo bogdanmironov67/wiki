@@ -18,13 +18,17 @@ class ModController extends ClientController
             ->get();
 
         return response()->json(
-            $mods->map(function ($mod) {
+            $mods->map(function (Mod $mod) {
                 return [
                     'id' => $mod->id,
                     'name' => $mod->name,
                     'slug' => $mod->slug,
                     'description' => $mod->description,
-                    'index' => $mod->indexPage(),
+                    'index' => $mod->indexPage ? [
+                        'id' => $mod->indexPage->id,
+                        'title' => $mod->indexPage->title,
+                        'slug' => $mod->indexPage->slug,
+                    ] : null,
                     'created_at' => $mod->created_at->toISOString(),
                     'updated_at' => $mod->updated_at->toISOString(),
                 ];
@@ -94,6 +98,18 @@ class ModController extends ClientController
 
         return response()->json([
             'content' => $page->content,
+            'parent' => $page->parent ? [
+                'id' => $page->parent->id,
+                'title' => $page->parent->title,
+                'slug' => $page->parent->slug,
+            ] : null,
+            'children' => $page->children()->orderBy('order_index')->get()->map(function ($child) {
+                return [
+                    'id' => $child->id,
+                    'title' => $child->title,
+                    'slug' => $child->slug,
+                ];
+            })->values()->toArray(),
         ]);
     }
 }
