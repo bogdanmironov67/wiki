@@ -23,16 +23,41 @@ Route::group(['prefix' => '/dashboard', 'middleware' => ['auth', 'verified']], f
         $collaborativeModsCount = $user->mods()->count();
         $totalPagesCount = $user->ownedMods()->withCount('pages')->get()->sum('pages_count') +
             $user->mods()->withCount('pages')->get()->sum('pages_count');
-        $latestPages = $user->ownedMods()->with(['pages' => function ($query) {
-            $query->latest()->limit(5);
-        }])->get()->pluck('pages')->flatten()->merge(
-            $user->mods()->with(['pages' => function ($query) {
-                $query->latest()->limit(5);
-            }])->get()->pluck('pages')->flatten()
-        )->sortByDesc('created_at')->take(5);
-        $latestMods = $user->ownedMods()->latest()->limit(5)->get()->merge(
-            $user->mods()->latest()->limit(5)->get()
-        )->sortByDesc('created_at')->take(5);
+        $latestMods = $user->ownedMods()
+            ->with(['pages' => function ($query) {
+                $query->latest()->limit(5)->select('id', 'title as name', 'slug', 'updated_at', 'mod_id');
+            }])
+            ->latest()
+            ->limit(5)
+            ->select('id', 'name', 'slug', 'updated_at')
+            ->get()
+            ->merge(
+                $user->mods()
+                    ->with(['pages' => function ($query) {
+                        $query->latest()->limit(5)->select('id', 'title as name', 'slug', 'updated_at', 'mod_id');
+                    }])
+                    ->latest()
+                    ->limit(5)
+                    ->select('id', 'name', 'slug', 'updated_at')
+                    ->get()
+            )
+            ->sortByDesc('updated_at')
+            ->take(5)
+            ->map(function ($mod) {
+                return [
+                    'slug' => $mod->slug,
+                    'name' => $mod->name,
+                    'last_update_time' => $mod->updated_at,
+                    'latest_pages' => $mod->pages->map(function ($page) {
+                        return [
+                            'name' => $page->name,
+                            'slug' => $page->slug,
+                            'last_update' => $page->updated_at,
+                        ];
+                    })->toArray(),
+                ];
+            })
+            ->values();
 
         return Inertia::render('dashboard', [
             'stats' => [
@@ -40,7 +65,6 @@ Route::group(['prefix' => '/dashboard', 'middleware' => ['auth', 'verified']], f
                 'collaborativeModsCount' => $collaborativeModsCount,
                 'totalPagesCount' => $totalPagesCount,
                 'publicViewsCount' => 0,
-                'latestPages' => $latestPages,
                 'latestMods' => $latestMods,
             ],
         ]);
