@@ -35,7 +35,7 @@ export default function Register() {
                   tabIndex={1}
                   autoComplete="name"
                   name="name"
-                  placeholder="Full name"
+                  placeholder="Name"
                 />
                 <InputError message={errors.name} className="mt-2" />
               </div>
