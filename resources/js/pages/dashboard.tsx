@@ -24,7 +24,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
-import type { Auth, BreadcrumbItem, DashboardStats, SharedData } from '@/types';
+import type { BreadcrumbItem, DashboardStats, SharedData } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -38,17 +38,7 @@ interface Props {
 }
 
 export default function Dashboard({ stats }: Props) {
-  const { auth } = usePage<SharedData>().props;
-  const [greeting] = useState(() => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Greetings';
-    return 'Good evening';
-  });
-
   const totalMods = stats.ownedModsCount + stats.collaborativeModsCount;
-  const avgPagesPerMod =
-    totalMods > 0 ? Math.round(stats.totalPagesCount / totalMods) : 0;
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
@@ -62,7 +52,7 @@ export default function Dashboard({ stats }: Props) {
       </Head>
 
       <div className="space-y-8 pb-8">
-        <Hero greeting={greeting} auth={auth} />
+        <Hero />
 
         <DashboardStats totalMods={totalMods} stats={stats} />
 
@@ -74,7 +64,7 @@ export default function Dashboard({ stats }: Props) {
           <div className="space-y-6">
             <QuickActions />
 
-            <Stats stats={stats} avgPagesPerMod={avgPagesPerMod} />
+            <Stats stats={stats} totalMods={totalMods} />
           </div>
         </div>
       </div>
@@ -82,7 +72,16 @@ export default function Dashboard({ stats }: Props) {
   );
 }
 
-function Hero({ greeting, auth }: { greeting: string; auth: Auth }) {
+function Hero() {
+  const { auth } = usePage<SharedData>().props;
+
+  const [greeting] = useState(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Greetings';
+    return 'Good evening';
+  });
+
   return (
     <div className="relative overflow-hidden rounded-sm border border-border/50 bg-linear-to-br from-primary/10 via-purple-500/5 to-pink-500/10 p-8 md:p-10">
       <div className="absolute inset-0 overflow-hidden">
@@ -171,11 +170,14 @@ function DashboardStats({
 
 function Stats({
   stats,
-  avgPagesPerMod,
+  totalMods,
 }: {
   stats: DashboardStats;
-  avgPagesPerMod: number;
+  totalMods: number;
 }) {
+  const avgPagesPerMod =
+    totalMods > 0 ? Math.round(stats.totalPagesCount / totalMods) : 0;
+
   return (
     <Card className="border-border/50 bg-linear-to-br from-primary/5 to-purple-500/5">
       <CardHeader>
