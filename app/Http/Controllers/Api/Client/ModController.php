@@ -49,7 +49,9 @@ class ModController extends ClientController
     {
         $mod_id = $request->route('mod');
 
-        $mod = Mod::where('id', $mod_id)->firstOrFail();
+        $mod = Mod::where('id', $mod_id)
+            ->with('owner')
+            ->firstOrFail();
 
         if (! $mod->canBeAccessedBy(Auth::user())) {
             return response()->json(['error' => 'Access denied. You do not have permission to view this mod.'], 403);
@@ -60,6 +62,20 @@ class ModController extends ClientController
         $pages = $this->buildPageHierarchy($allPages);
 
         return response()->json([
+            'mod' => [
+                'id' => $mod->id,
+                'name' => $mod->name,
+                'slug' => $mod->slug,
+                'description' => $mod->description,
+                'visibility' => $mod->visibility,
+                'author' => [
+                    'name' => $mod->owner->name,
+                    'username' => $mod->owner->username,
+                    'avatar_url' => $mod->owner->avatar_url,
+                ],
+                'created_at' => $mod->created_at->toISOString(),
+                'updated_at' => $mod->updated_at->toISOString(),
+            ],
             'pages' => $pages,
         ]);
     }
