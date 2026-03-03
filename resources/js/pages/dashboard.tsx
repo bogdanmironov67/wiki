@@ -90,71 +90,10 @@ function Hero() {
           Manage your mods, collaborate with your team, and create
           documentation.
         </p>
-        {/* <div className="flex flex-wrap gap-3">
-          <Link href="/dashboard/mods/create">
-            <Button
-              variant="outline"
-              className="gap-2 transition-colors duration-300 hover:bg-primary hover:text-background bg-background/50"
-            >
-              <Plus className="h-4 w-4" />
-              Create New Mod
-            </Button>
-          </Link>
-          <Link href="/dashboard/mods">
-            <Button
-              variant="ghost"
-              className="gap-2 transition-colors duration-300 hover:bg-primary/10"
-            >
-              <FolderOpen className="h-4 w-4" />
-              Browse Your Mods
-            </Button>
-          </Link>
-        </div> */}
       </div>
     </div>
   );
 }
-
-// function DashboardStats({
-//   totalMods,
-//   stats,
-// }: {
-//   totalMods: number;
-//   stats: DashboardStats;
-// }) {
-//   return (
-//     <>
-//       <StatCard
-//         title="Total Mods"
-//         value={totalMods ?? 0}
-//         icon={FolderOpen}
-//         variant="white"
-//         delay={0}
-//       />
-//       <StatCard
-//         title="Documentation Pages"
-//         value={stats.totalPagesCount ?? 0}
-//         icon={FileText}
-//         variant="white"
-//         delay={100}
-//       />
-//       <StatCard
-//         title="Collaborators"
-//         value={stats.collaborativeModsCount ?? 0}
-//         icon={Users}
-//         variant="white"
-//         delay={200}
-//       />
-//       <StatCard
-//         title="Public Views"
-//         value={stats.publicViewsCount ?? 0}
-//         icon={EyeIcon}
-//         variant="white"
-//         delay={300}
-//       />
-//     </>
-//   );
-// }
 
 function Stats({
   stats,
