@@ -31,7 +31,7 @@ export function QuickActionButton({
   return (
     <Link href={href}>
       <div
-        className={cn('rounded-lg border p-4 transition-colors', styles.card)}
+        className={cn('rounded-lg border p-4 transition-colors bg-background', styles.card)}
       >
         <div className="flex items-start gap-3">
           <div className="flex min-w-0 flex-1 flex-col gap-2">
