@@ -9,11 +9,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { useInitials } from '@/hooks/use-initials';
 import { dashboard } from '@/routes';
 import { index as modsIndex } from '@/routes/mods';
@@ -51,22 +46,12 @@ export function UserMenuContent() {
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col truncate">
-              <Tooltip>
-                <TooltipTrigger>
-                  <p className="truncate text-sm font-medium text-start">
-                    {auth.user?.name}
-                  </p>
-                  <p className="truncate text-xs text-muted-foreground text-start">
-                    {auth.user?.email}
-                  </p>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="flex flex-col gap-1">
-                    <p className="text-sm font-medium">{auth.user?.name}</p>
-                    <p className="text-xs">{auth.user?.email}</p>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
+              <p className="truncate text-start text-sm font-medium">
+                {auth.user?.name}
+              </p>
+              <p className="truncate text-start text-xs text-muted-foreground">
+                {auth.user?.email}
+              </p>
             </div>
           </div>
           <DropdownMenuSeparator />

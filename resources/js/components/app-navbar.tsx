@@ -1,11 +1,5 @@
 import { Link } from '@inertiajs/react';
-import {
-  Menu,
-  Search,
-  Settings,
-  Github,
-  ExternalLink,
-} from 'lucide-react';
+import { Menu, Search, Settings, Github, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
