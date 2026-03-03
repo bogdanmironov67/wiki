@@ -15,13 +15,7 @@ import {
 import { useState } from 'react';
 import { QuickActionButton } from '@/components/dashboard/quick-action-button';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import {
   Tooltip,
   TooltipContent,
@@ -29,7 +23,6 @@ import {
 } from '@/components/ui/tooltip';
 import DashboardLayout from '@/layouts/dashboard-layout';
 import type { DashboardStats, ModInfo, PageInfo, SharedData } from '@/types';
-import { Separator } from '@/components/ui/separator';
 
 interface Props {
   stats: DashboardStats;
