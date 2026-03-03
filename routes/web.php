@@ -3,6 +3,7 @@
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\ModController;
 use App\Http\Controllers\PageController;
+use App\Services\PageViewService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -23,6 +24,10 @@ Route::group(['prefix' => '/dashboard', 'middleware' => ['auth', 'verified']], f
         $collaborativeModsCount = $user->mods()->count();
         $totalPagesCount = $user->ownedMods()->withCount('pages')->get()->sum('pages_count') +
             $user->mods()->withCount('pages')->get()->sum('pages_count');
+
+        $pageViewService = app(PageViewService::class);
+        $publicViewsCount = $pageViewService->getTotalPublicViews($user->id);
+
         $ownedMods = $user->ownedMods()
             ->with(['pages' => function ($query) {
                 $query->orderBy('updated_at', 'desc')->limit(5);
@@ -69,7 +74,7 @@ Route::group(['prefix' => '/dashboard', 'middleware' => ['auth', 'verified']], f
                 'ownedModsCount' => $ownedModsCount,
                 'collaborativeModsCount' => $collaborativeModsCount,
                 'totalPagesCount' => $totalPagesCount,
-                'publicViewsCount' => 0,
+                'publicViewsCount' => $publicViewsCount,
                 'latestMods' => $latestMods,
             ],
         ]);

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Mod;
 use App\Models\Page;
+use App\Services\PageViewService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -166,10 +167,29 @@ class PageController extends Controller
             $current = $current->parent;
         }
 
+        // Get view statistics for the page if user can edit
+        $viewStats = null;
+        if ($user && $mod->userCan($user, 'edit')) {
+            $pageViewService = app(PageViewService::class);
+            $viewStats = [
+                'totalViews' => $pageViewService->getPageViews($page),
+                'uniqueViews' => $pageViewService->getUniquePageViews($page),
+                'viewsThisMonth' => $pageViewService->getPageViewsInRange(
+                    $page,
+                    now()->startOfMonth()
+                ),
+                'viewsThisWeek' => $pageViewService->getPageViewsInRange(
+                    $page,
+                    now()->startOfWeek()
+                ),
+            ];
+        }
+
         return Inertia::render('Pages/Show', [
             'mod' => $mod->load(['owner']),
             'page' => array_merge($page->toArray(), [
                 'path' => $path,
+                'viewStats' => $viewStats,
                 'children' => $page->children->map(function ($child) {
                     return [
                         'id' => $child->id,
@@ -384,7 +404,7 @@ class PageController extends Controller
     /**
      * Display the specified page for public viewing.
      */
-    public function publicShow(Mod $mod, Page $page)
+    public function publicShow(Mod $mod, Page $page, Request $request)
     {
         if ($page->mod_id !== $mod->id) {
             abort(404);
@@ -397,6 +417,10 @@ class PageController extends Controller
         if (! $page->published) {
             abort(404, 'Page not found');
         }
+
+        // Track page view
+        $pageViewService = app(PageViewService::class);
+        $pageViewService->trackView($page, $request);
 
         $page->load(['children' => function ($query) {
             $query->where('published', true)->orderBy('order_index');

@@ -110,6 +110,32 @@ class Page extends Model
     }
 
     /**
+     * Get all views for this page.
+     */
+    public function views()
+    {
+        return $this->hasMany(PageView::class);
+    }
+
+    /**
+     * Get total view count for this page.
+     */
+    public function getTotalViewsAttribute(): int
+    {
+        return $this->views()->count();
+    }
+
+    /**
+     * Get unique view count for this page (based on IP/User combination).
+     */
+    public function getUniqueViewsAttribute(): int
+    {
+        return $this->views()
+            ->selectRaw('DISTINCT COALESCE(user_id, ip_address) as identifier')
+            ->count();
+    }
+
+    /**
      * Get the full path of the page (breadcrumbs).
      */
     public function getPathAttribute(): array
