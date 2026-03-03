@@ -1,24 +1,13 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import {
-  BookOpen,
-  LayoutGrid,
   Menu,
   Search,
   Settings,
-  LogOut,
   Github,
   ExternalLink,
 } from 'lucide-react';
 import { useState } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import {
   NavigationMenu,
@@ -33,19 +22,14 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { useCurrentUrl } from '@/hooks/use-current-url';
-import { useInitials } from '@/hooks/use-initials';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
-import { index as modsIndex } from '@/routes/mods';
-import type { SharedData } from '@/types';
 import { mainNavItems } from '@/utils/commonUtils';
 import HytaleModdingLogo from './hytale-modding-logo';
 import { UserMenuContent } from './user-menu-content';
 
 export default function AppNavbar() {
   const { isCurrentUrl } = useCurrentUrl();
-  const { auth } = usePage<SharedData>().props;
-  const getInitials = useInitials();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
@@ -91,7 +75,7 @@ export default function AppNavbar() {
 
         {/* Actions */}
         <div className="ml-8 flex items-center space-x-4">
-          <UserMenuContent user={auth.user} />
+          <UserMenuContent />
 
           {/* Mobile Menu */}
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>

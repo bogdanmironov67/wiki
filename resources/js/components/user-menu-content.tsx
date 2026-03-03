@@ -1,5 +1,7 @@
-import { Link, router, usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { BookOpen, LayoutGrid, LogOut, Settings } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,25 +9,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
-import type { SharedData, User } from '@/types';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useInitials } from '@/hooks/use-initials';
-import { useCurrentUrl } from '@/hooks/use-current-url';
-import { dashboard } from '@/routes';
-import { index as modsIndex } from '@/routes/mods';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useInitials } from '@/hooks/use-initials';
+import { dashboard } from '@/routes';
+import { index as modsIndex } from '@/routes/mods';
+import type { SharedData } from '@/types';
 
-type Props = {
-  user: User;
-};
 
-export function UserMenuContent({ user }: Props) {
+export function UserMenuContent() {
   const { auth } = usePage<SharedData>().props;
   const getInitials = useInitials();
 
