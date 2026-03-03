@@ -3,6 +3,9 @@ install:
     php artisan key:generate
     php artisan migrate --seed
 
+refresh:
+    php artisan migrate:fresh --seed
+
 run-dev:
     bun run dev
 
